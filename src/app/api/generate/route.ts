@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     ageNum <= 10 ? "clear and engaging language suitable for primary school children" :
                    "rich and descriptive language suitable for a pre-teen";
 
-  const systemPrompt = `You are a gifted children's story writer who creates magical, immersive bedtime stories. Your stories are warm, vivid, and perfectly tailored to the child's age. Always write in third person centered on the child as the hero. Stories should be 400–600 words, written in clear paragraphs. End with a gentle, sleepy conclusion that eases the child toward sleep.`;
+  const systemPrompt = `You are a gifted children's story writer who creates magical, immersive bedtime stories. Your stories are warm, vivid, and perfectly tailored to the child's age. Always write in third person centered on the child as the hero. Stories should be 900–1200 words, written in clear paragraphs with rich detail, vivid descriptions, and a full story arc (an engaging beginning, an exciting middle with a challenge or adventure, and a satisfying resolution). End with a gentle, sleepy conclusion that eases the child toward sleep.`;
 
   const userPrompt = `Write ${themeDescription} for a ${ageNum}-year-old child named ${kidName}. Use ${readingLevel}.
 
@@ -59,7 +59,7 @@ Weave these events naturally into the story's plot, transforming them through th
           { role: "system", content: systemPrompt },
           { role: "user",   content: userPrompt },
         ],
-        max_tokens: 900,
+        max_tokens: 2000,
         temperature: 0.85,
       }),
     });
