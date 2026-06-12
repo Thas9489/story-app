@@ -22,7 +22,7 @@ export default function StoryOutput({ story, kidName, theme }: Props) {
 
   return (
     <div
-      className="rounded-3xl p-8 flex flex-col gap-6 relative overflow-hidden"
+      className="rounded-2xl md:rounded-3xl p-5 md:p-8 flex flex-col gap-4 md:gap-6 relative overflow-hidden"
       style={{
         background: "rgba(8, 15, 35, 0.85)",
         border: `1px solid ${deco.border}`,
@@ -45,7 +45,7 @@ export default function StoryOutput({ story, kidName, theme }: Props) {
             {deco.title}
           </p>
           <h2
-            className="text-3xl font-semibold leading-tight"
+            className="text-2xl md:text-3xl font-semibold leading-tight"
             style={{ color: "#ffd700", fontFamily: "var(--font-crimson)" }}
           >
             {kidName}&apos;s Story {deco.icon}
@@ -54,7 +54,7 @@ export default function StoryOutput({ story, kidName, theme }: Props) {
         <button
           onClick={handleCopy}
           title="Copy story"
-          className="shrink-0 rounded-xl px-4 py-2 text-sm transition-all hover:opacity-80"
+          className="shrink-0 rounded-xl px-3 md:px-4 py-2 text-xs md:text-sm transition-all hover:opacity-80 active:opacity-60"
           style={{
             background: "rgba(255,215,100,0.1)",
             border: "1px solid rgba(255,215,100,0.3)",
@@ -74,7 +74,7 @@ export default function StoryOutput({ story, kidName, theme }: Props) {
 
       {/* Story text */}
       <div
-        className="story-text text-lg overflow-y-auto max-h-[60vh] pr-2"
+        className="story-text text-base md:text-lg lg:overflow-y-auto lg:max-h-[65vh] lg:pr-2"
         style={{ color: "#e8d5b7", fontFamily: "var(--font-crimson)" }}
       >
         {story.split("\n").map((paragraph, i) =>

@@ -45,7 +45,7 @@ export default function StoryForm({ onGenerate, loading }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
       {/* Kid's name & age */}
       <div className="flex gap-4">
         <div className="flex-1 flex flex-col gap-2">
@@ -125,7 +125,7 @@ export default function StoryForm({ onGenerate, loading }: Props) {
           value={form.events}
           onChange={(e) => setForm({ ...form, events: e.target.value })}
           className="input-field rounded-xl px-4 py-3 text-base resize-none"
-          rows={5}
+          rows={4}
         />
       </div>
 
