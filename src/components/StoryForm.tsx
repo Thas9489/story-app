@@ -126,14 +126,7 @@ export default function StoryForm({ onGenerate, loading }: Props) {
           onChange={(e) => setForm({ ...form, events: e.target.value })}
           className="input-field rounded-xl px-4 py-3 text-base resize-none"
           rows={5}
-          maxLength={800}
         />
-        <span
-          className="text-xs text-right"
-          style={{ color: "rgba(130,150,200,0.6)", fontFamily: "var(--font-inter)" }}
-        >
-          {form.events.length}/800
-        </span>
       </div>
 
       {/* Submit */}
