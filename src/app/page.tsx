@@ -8,6 +8,9 @@ import ApiKeyModal from "@/components/ApiKeyModal";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
+// Model to use — openrouter/auto picks the best model your account can access
+const MODEL = "openrouter/auto";
+
 const THEME_PROMPTS: Record<string, string> = {
   fantasy: "a whimsical high-fantasy story with magical creatures, enchanted lands, wizards, and a heroic quest. Use vivid, imaginative language full of wonder.",
   scifi:   "an exciting science-fiction adventure set in space or the future, with robots, spaceships, alien friends, and cool technology. Make it feel futuristic and adventurous.",
@@ -69,7 +72,7 @@ Weave these events naturally into the story's plot, transforming them through th
           "X-Title": "Dreamweaver Story Generator",
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3.3-70b-instruct:free",
+          model: MODEL,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user",   content: userPrompt },
@@ -80,7 +83,13 @@ Weave these events naturally into the story's plot, transforming them through th
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error?.message ?? "Failed to generate story. Please try again.");
+      if (!res.ok) {
+        const msg = json.error?.message ?? "";
+        if (msg.toLowerCase().includes("unavailable for free") || msg.toLowerCase().includes("no endpoints")) {
+          throw new Error("Free models are unavailable. Please add credits at openrouter.ai/credits (even $1 unlocks all free models).");
+        }
+        throw new Error(msg || "Failed to generate story. Please try again.");
+      }
       const storyText = json.choices?.[0]?.message?.content ?? "";
       if (!storyText) throw new Error("No story returned. Please try again.");
       setStory(storyText);
