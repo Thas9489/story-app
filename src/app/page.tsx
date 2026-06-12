@@ -6,6 +6,15 @@ import StoryForm, { StoryFormData } from "@/components/StoryForm";
 import StoryOutput from "@/components/StoryOutput";
 import ApiKeyModal from "@/components/ApiKeyModal";
 
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+const THEME_PROMPTS: Record<string, string> = {
+  fantasy: "a whimsical high-fantasy story with magical creatures, enchanted lands, wizards, and a heroic quest. Use vivid, imaginative language full of wonder.",
+  scifi:   "an exciting science-fiction adventure set in space or the future, with robots, spaceships, alien friends, and cool technology. Make it feel futuristic and adventurous.",
+  comedy:  "a hilarious, laugh-out-loud comedy story with silly misunderstandings, funny characters, absurd situations, and a feel-good ending. Use playful, witty language.",
+  horror:  "a mildly spooky (age-appropriate, not traumatizing) Halloween-style story with friendly ghosts, mysterious shadows, and a gentle scare that ends happily and safely.",
+};
+
 export default function Home() {
   const [story, setStory] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -15,27 +24,66 @@ export default function Home() {
   const [apiKey, setApiKey] = useState<string>("");
 
   useEffect(() => {
-    setApiKey(localStorage.getItem("openrouter_api_key") ?? "");
+    const stored = localStorage.getItem("openrouter_api_key") ?? "";
+    setApiKey(stored);
+    // Auto-open modal on first visit if no key is saved yet
+    if (!stored) setShowKeyModal(true);
   }, []);
 
-  const handleKeySet = (key: string) => {
-    setApiKey(key);
-  };
+  const handleKeySet = (key: string) => setApiKey(key);
 
   const handleGenerate = async (data: StoryFormData) => {
     setLoading(true);
     setError(null);
     setLastForm(data);
 
+    const key = apiKey.trim();
+    if (!key) {
+      setError("Please configure your OpenRouter API key first (click ⚙ at the bottom of the form).");
+      setLoading(false);
+      return;
+    }
+    const ageNum = parseInt(data.kidAge, 10);
+    const readingLevel =
+      ageNum <= 4  ? "very simple words and very short sentences, suitable for toddlers" :
+      ageNum <= 7  ? "simple words and short paragraphs, suitable for early readers" :
+      ageNum <= 10 ? "clear and engaging language suitable for primary school children" :
+                     "rich and descriptive language suitable for a pre-teen";
+
+    const systemPrompt = `You are a gifted children's story writer who creates magical, immersive bedtime stories. Your stories are warm, vivid, and perfectly tailored to the child's age. Always write in third person centered on the child as the hero. Stories should be 400–600 words, written in clear paragraphs. End with a gentle, sleepy conclusion that eases the child toward sleep.`;
+
+    const userPrompt = `Write ${THEME_PROMPTS[data.theme] ?? "an engaging bedtime story"} for a ${ageNum}-year-old child named ${data.kidName}. Use ${readingLevel}.
+
+The story must be inspired by these real events from ${data.kidName}'s day:
+"${data.events}"
+
+Weave these events naturally into the story's plot, transforming them through the ${data.theme} lens. Make ${data.kidName} the brave and clever hero. End the story gently, with ${data.kidName} drifting off to sleep after their adventure.`;
+
     try {
-      const res = await fetch("/api/generate", {
+      const res = await fetch(OPENROUTER_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, apiKey: apiKey || undefined }),
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": window.location.origin,
+          "X-Title": "Dreamweaver Story Generator",
+        },
+        body: JSON.stringify({
+          model: "meta-llama/llama-3.3-70b-instruct:free",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user",   content: userPrompt },
+          ],
+          max_tokens: 900,
+          temperature: 0.85,
+        }),
       });
+
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to generate story.");
-      setStory(json.story);
+      if (!res.ok) throw new Error(json.error?.message ?? "Failed to generate story. Please try again.");
+      const storyText = json.choices?.[0]?.message?.content ?? "";
+      if (!storyText) throw new Error("No story returned. Please try again.");
+      setStory(storyText);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -60,10 +108,7 @@ export default function Home() {
             </h1>
             <span className="text-3xl">✨</span>
           </div>
-          <p
-            className="text-lg max-w-md mx-auto"
-            style={{ color: "rgba(180,200,240,0.7)" }}
-          >
+          <p className="text-lg max-w-md mx-auto" style={{ color: "rgba(180,200,240,0.7)" }}>
             Transform your child&apos;s day into a magical bedtime story
           </p>
         </header>
@@ -88,15 +133,15 @@ export default function Home() {
             </h2>
             <StoryForm onGenerate={handleGenerate} loading={loading} />
 
-            {/* Subtle API key link at bottom of form */}
+            {/* Subtle API key link */}
             <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(100,130,200,0.12)" }}>
               <button
                 onClick={() => setShowKeyModal(true)}
-                className="flex items-center gap-2 text-xs transition-opacity hover:opacity-100 opacity-50"
+                className="flex items-center gap-2 text-xs transition-opacity hover:opacity-100 opacity-40"
                 style={{ color: "rgba(150,170,220,0.9)", fontFamily: "var(--font-inter)" }}
               >
                 <span>⚙</span>
-                <span>{apiKey ? "API key configured · change" : "Configure API Key"}</span>
+                <span>{apiKey ? "API key configured · change" : "⚠ No API key — click to configure"}</span>
               </button>
             </div>
           </div>
@@ -128,16 +173,10 @@ export default function Home() {
                 }}
               >
                 <div className="text-6xl mb-4 opacity-40">📖</div>
-                <p
-                  className="text-lg mb-2"
-                  style={{ color: "rgba(150,170,220,0.6)", fontFamily: "var(--font-crimson)" }}
-                >
+                <p className="text-lg mb-2" style={{ color: "rgba(150,170,220,0.6)", fontFamily: "var(--font-crimson)" }}>
                   Your story will appear here
                 </p>
-                <p
-                  className="text-sm"
-                  style={{ color: "rgba(100,120,180,0.5)" }}
-                >
+                <p className="text-sm" style={{ color: "rgba(100,120,180,0.5)" }}>
                   Fill in the details and press &quot;Generate Story&quot;
                 </p>
               </div>

@@ -60,7 +60,7 @@ Weave these events naturally into the story's plot, transforming them through th
         "X-Title": "Dreamweaver Story Generator",
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b:free",
+        model: "meta-llama/llama-3.3-70b-instruct:free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
