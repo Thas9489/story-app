@@ -14,17 +14,13 @@ const THEME_PROMPTS: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { kidName, kidAge, theme, events, apiKey: clientKey } = body;
-
-  // Client-supplied key takes priority, then fall back to server env var
-  const apiKey = clientKey || process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "No API key configured. Click the '⚠️ Set API Key' button and enter your OpenRouter key." },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "OpenRouter API key not configured." }, { status: 500 });
   }
+
+  const body = await req.json();
+  const { kidName, kidAge, theme, events } = body;
 
   if (!kidName || !kidAge || !theme || !events) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
