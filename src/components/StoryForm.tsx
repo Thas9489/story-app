@@ -64,7 +64,7 @@ export default function StoryForm({ onGenerate, loading }: Props) {
             maxLength={40}
           />
         </div>
-        <div style={{ width: 120 }} className="flex flex-col gap-2">
+        <div className="w-20 shrink-0 flex flex-col gap-2">
           <label
             className="text-sm font-medium"
             style={{ color: "rgba(200,220,255,0.8)", fontFamily: "var(--font-inter)" }}
@@ -76,7 +76,7 @@ export default function StoryForm({ onGenerate, loading }: Props) {
             placeholder="5"
             value={form.kidAge}
             onChange={(e) => setForm({ ...form, kidAge: e.target.value })}
-            className="input-field rounded-xl px-4 py-3 text-base"
+            className="input-field rounded-xl px-2 py-3 text-base text-center"
             min={1}
             max={18}
           />
