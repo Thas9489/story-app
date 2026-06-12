@@ -1,15 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import StarBackground from "@/components/StarBackground";
 import StoryForm, { StoryFormData } from "@/components/StoryForm";
 import StoryOutput from "@/components/StoryOutput";
+import ApiKeyModal from "@/components/ApiKeyModal";
 
 export default function Home() {
   const [story, setStory] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastForm, setLastForm] = useState<StoryFormData | null>(null);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [apiKey, setApiKey] = useState<string>("");
+
+  useEffect(() => {
+    setApiKey(localStorage.getItem("openrouter_api_key") ?? "");
+  }, []);
+
+  const handleKeySet = (key: string) => {
+    setApiKey(key);
+  };
 
   const handleGenerate = async (data: StoryFormData) => {
     setLoading(true);
@@ -20,7 +31,7 @@ export default function Home() {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, apiKey: apiKey || undefined }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed to generate story.");
@@ -76,6 +87,18 @@ export default function Home() {
               Tell me about their day
             </h2>
             <StoryForm onGenerate={handleGenerate} loading={loading} />
+
+            {/* Subtle API key link at bottom of form */}
+            <div className="mt-5 pt-4" style={{ borderTop: "1px solid rgba(100,130,200,0.12)" }}>
+              <button
+                onClick={() => setShowKeyModal(true)}
+                className="flex items-center gap-2 text-xs transition-opacity hover:opacity-100 opacity-50"
+                style={{ color: "rgba(150,170,220,0.9)", fontFamily: "var(--font-inter)" }}
+              >
+                <span>⚙</span>
+                <span>{apiKey ? "API key configured · change" : "Configure API Key"}</span>
+              </button>
+            </div>
           </div>
 
           {/* Output panel */}
@@ -122,6 +145,12 @@ export default function Home() {
           </div>
         </main>
       </div>
+
+      <ApiKeyModal
+        isOpen={showKeyModal}
+        onClose={() => setShowKeyModal(false)}
+        onSave={handleKeySet}
+      />
     </div>
   );
 }
